@@ -3,6 +3,8 @@ package com.example.brianmj.nasajson
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.async
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -18,16 +20,13 @@ val EXPLANATION_KEY = "explanation"
 val TITLE_KEY = "title"
 val URL_KEY = "url"
 
-fun retrieveHTTPString(urlString: String): String? {
+fun retrieveHTTPString(urlString: String): String  {
     val httpURLConnection = openConnectionToURL(urlString)
 
-    if(httpURLConnection == null)
-        return null
     // make sure we got a good response code
-    if(httpURLConnection.responseCode != HttpURLConnection.HTTP_OK)
-        return null
+    (httpURLConnection?.responseCode != HttpURLConnection.HTTP_OK)
 
-    return getHttpText(httpURLConnection)
+    return getHttpText(httpURLConnection!!) ?: ""
 }
 
 fun openConnectionToURL(urlString: String): HttpURLConnection? {
@@ -75,9 +74,12 @@ fun getHttpText(http: HttpURLConnection): String? {
 }
 
 data class Result(val title: String, val explanation: String, val url: String)
-data class Result2(val title: String, val explanation: String, val bm: Bitmap)
+data class Result2(val title: String, val explanation: String, val bitmap: Bitmap?)
 
-fun readNasaJson(jsonString: String): Result{
+fun readNasaJson(jsonString: String): Result?{
+
+    if(jsonString.isEmpty())
+        return null
     var title = String()
     var explanation = String()
     var url = String()
