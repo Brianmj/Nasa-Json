@@ -2,6 +2,7 @@ package com.example.brianmj.nasajson
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v4.app.FragmentManager
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
@@ -16,29 +17,13 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        launch(UI){
-            textView_title.text = "Downloading data..."
-            val res = async{
-                val text = retrieveHTTPString(NASA_JSON_URL)
-                var theResult: Result2 = Result2("", "", null)
-                text?.let {
-                    val res1 = readNasaJson(it)
-                    res1?.let {
-                        val bitmap = decodeBitmap(it.url)
-                        theResult = Result2(it.title, it.explanation, bitmap)
-                    }
-                }
-                theResult
-            }
-
-            val result = res.await()
-            updateUI(result)
+        val fragmentManager: FragmentManager = supportFragmentManager
+        val fragment = fragmentManager.findFragmentById(R.id.fragment_select_date_container) ?: run{
+            val frag = SelectDateFragment.newInstance()
+            fragmentManager.beginTransaction().add(R.id.fragment_select_date_container, frag).commit()
+            frag
         }
+
     }
 
-    fun updateUI(r: Result2) {
-        textView_explanation.text = r.explanation
-        textView_title.text = r.title
-        imageView_url_display.setImageBitmap(r.bitmap)
-    }
 }
